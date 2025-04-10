@@ -19,6 +19,12 @@ else
     FASTAPI_DIR="$SCRIPT_DIR"
 fi
 
+# Installation des dépendances Python
+echo "=== Installation des dépendances Python ==="
+cd "$FASTAPI_DIR" || exit 1
+echo "Installation des requirements..."
+pip install -r requirements.txt
+
 # Démarrage du frontend
 echo "=== Démarrage du Frontend ==="
 cd "$SCRIPT_DIR/client" || exit 1
@@ -35,7 +41,7 @@ else
   exit 1
 fi
 
-# Démarrer le backend avec Uvicorn directement
+# Démarrer le backend avec Uvicorn
 echo "Démarrage du backend avec Uvicorn..."
 cd "$FASTAPI_DIR" || exit 1
 exec uvicorn render_main:app \
