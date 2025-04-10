@@ -4,8 +4,8 @@ services:
     name: nephropredict-api
     env: python
     region: frankfurt  # Changer selon votre région préférée
-    plan: free  # Utiliser free pour les tests, changer pour paid en production
-    buildCommand: pip install -r server/fastapi/production_requirements.txt && chmod +x render_start.sh
+    plan: free  # Niveau gratuit
+    buildCommand: pip install -r server/fastapi/production_requirements.txt && chmod +x render_start.sh && cp -f server/fastapi/render_main.py server/fastapi/main.py
     startCommand: ./render_start.sh
     envVars:
       - key: PYTHON_VERSION
@@ -19,8 +19,3 @@ services:
       - key: MAX_REQUESTS
         value: 1
     healthCheckPath: /health
-    disk:
-      name: model-data
-      mountPath: /app/attached_assets
-      sizeGB: 1
-    preDeployCommand: cp -f server/fastapi/render_main.py server/fastapi/main.py # Fallback si render_main.py n'est pas trouvé
