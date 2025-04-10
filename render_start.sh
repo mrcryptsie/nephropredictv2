@@ -22,10 +22,25 @@ else
     FASTAPI_DIR="$SCRIPT_DIR"
 fi
 
-cd "$FASTAPI_DIR"
+# Démarrage du frontend
+echo "=== Démarrage du Frontend ==="
+cd "$SCRIPT_DIR/client" || exit 1
+echo "Installation des dépendances frontend..."
+npm install
+echo "Construction du frontend..."
+npm run build
 
-# Démarrer avec un seul worker et augmenter le timeout
-# Utiliser render_main.py au lieu de main.py pour bénéficier du chargement paresseux du modèle
+# Vérifier que le build a réussi
+if [ $? -eq 0 ]; then
+  echo "Frontend construit avec succès"
+else
+  echo "Erreur lors de la construction du frontend"
+  exit 1
+fi
+
+# Démarrer le backend avec Gunicorn
+echo "Démarrage de Gunicorn avec uvicorn..."
+cd "$FASTAPI_DIR" || exit 1
 exec gunicorn render_main:app \
     --worker-class uvicorn.workers.UvicornWorker \
     --workers $WORKERS \
