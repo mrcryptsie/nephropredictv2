@@ -2,8 +2,8 @@ import axios from "axios";
 import { PredictionInput } from "@shared/schema";
 import { PredictionResponse } from "@shared/types";
 
-// FastAPI service URL - in production this would come from environment variables
-const FASTAPI_URL = process.env.FASTAPI_URL || "http://localhost:8000";
+// FastAPI service URL - change this to your deployed Render API URL
+const FASTAPI_URL = process.env.FASTAPI_URL || "https://nephropredict-api.onrender.com";
 
 export async function makeRequestToFastAPI(
   data: PredictionInput
