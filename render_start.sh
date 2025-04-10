@@ -4,14 +4,11 @@ set -e
 # Configuration pour Render
 export PORT=${PORT:-8000}
 export HOST=${HOST:-0.0.0.0}
-export WORKERS=${WORKERS:-1}  # Réduit à un seul worker pour éviter les timeouts
-export TIMEOUT=${TIMEOUT:-120}  # Augmente le timeout à 120 secondes
-export MAX_REQUESTS=${MAX_REQUESTS:-1}  # Limite le nombre de requêtes par worker
+export TIMEOUT=${TIMEOUT:-120}  # Timeout en secondes
 
 echo "=== Démarrage de NéphroPredict sur Render ==="
 echo "Hôte: $HOST"
 echo "Port: $PORT"
-echo "Workers: $WORKERS"
 echo "Timeout: $TIMEOUT"
 
 # Vérifier le répertoire
@@ -38,14 +35,10 @@ else
   exit 1
 fi
 
-# Démarrer le backend avec Gunicorn
-echo "Démarrage de Gunicorn avec uvicorn..."
+# Démarrer le backend avec Uvicorn directement
+echo "Démarrage du backend avec Uvicorn..."
 cd "$FASTAPI_DIR" || exit 1
-exec gunicorn render_main:app \
-    --worker-class uvicorn.workers.UvicornWorker \
-    --workers $WORKERS \
-    --bind $HOST:$PORT \
-    --timeout $TIMEOUT \
-    --max-requests $MAX_REQUESTS \
-    --access-logfile - \
-    --error-logfile -
+exec uvicorn render_main:app \
+    --host $HOST \
+    --port $PORT \
+    --timeout-keep-alive $TIMEOUT
