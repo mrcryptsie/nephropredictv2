@@ -7,6 +7,15 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+async function ensureJsonResponse(res: Response): Promise<void> {
+  const contentType = res.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    const raw = await res.text();
+    console.error("Réponse non JSON :", raw);
+    throw new Error("Format de réponse invalide");
+  }
+}
+
 export async function apiRequest(
   method: string,
   url: string,
@@ -20,10 +29,12 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
+  await ensureJsonResponse(res); // ✅ Vérification du Content-Type ici
   return res;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
+
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
@@ -38,6 +49,7 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
+    await ensureJsonResponse(res); // ✅ Aussi ici pour les queries React Query
     return await res.json();
   };
 
