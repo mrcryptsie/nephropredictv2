@@ -1,11 +1,13 @@
 services:
-  # Service pour le backend FastAPI
   - type: web
     name: nephropredict-api
     env: python
-    region: frankfurt  # Changer selon votre région préférée
-    plan: free  # Niveau gratuit
-    buildCommand: pip install -r server/fastapi/production_requirements.txt && chmod +x render_start.sh && cp -f server/fastapi/render_main.py server/fastapi/main.py
+    region: frankfurt
+    plan: free
+    buildCommand: |
+      pip install -r server/fastapi/production_requirements.txt
+      chmod +x render_start.sh
+      cp -f server/fastapi/render_main.py server/fastapi/main.py
     startCommand: ./render_start.sh
     envVars:
       - key: PYTHON_VERSION
@@ -16,6 +18,4 @@ services:
         value: 1
       - key: TIMEOUT
         value: 120
-      - key: MAX_REQUESTS
-        value: 1
     healthCheckPath: /health
