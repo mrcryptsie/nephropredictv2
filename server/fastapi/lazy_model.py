@@ -8,8 +8,8 @@ from typing import Dict, List, Any, Optional
 
 class LazyIRCModel:
     """
-    Classe pour gérer le modèle de prédiction IRC (Insuffisance Rénale Chronique)
-    avec un chargement paresseux pour éviter les délais d'attente lors du rendu
+    Class to handle the IRC (Insuffisance Rénale Chronique) prediction model
+    with lazy loading to avoid Render timeouts
     """
     def __init__(self):
         self._model = None
@@ -18,23 +18,23 @@ class LazyIRCModel:
         self._model_loading = False
         self._model_loaded = False
         
-        # Démarre un thread en arrière-plan pour charger le modèle
+        # Start a background thread to load the model
         self._start_loading_model()
     
     def _start_loading_model(self):
-        """Démarre un thread en arrière-plan pour charger le modèle"""
+        """Start a background thread to load the model"""
         self._model_loading = True
         thread = threading.Thread(target=self._load_model)
-        thread.daemon = True  # Le thread se termine lorsque le programme principal se termine
+        thread.daemon = True  # Thread will exit when the main program exits
         thread.start()
     
     def _load_model(self):
-        """Charge le modèle depuis le fichier pickle dans un thread en arrière-plan"""
+        """Load the model from the pickle file in a background thread"""
         try:
-            print("Début du chargement du modèle dans le thread en arrière-plan...")
+            print("Starting model loading in background thread...")
             model_path = os.path.join(os.path.dirname(__file__), '../../attached_assets/model_lucien_v1.pkl')
             
-            # Attendre un peu avant de commencer à charger le modèle pour permettre au programme de démarrer
+            # Give some time for the application to start before loading the model
             time.sleep(2)
             
             with open(model_path, 'rb') as file:
@@ -42,74 +42,74 @@ class LazyIRCModel:
             
             self._model_loaded = True
             self._model_loading = False
-            print("Modèle chargé avec succès dans le thread en arrière-plan")
+            print("Model loaded successfully in background thread")
         except Exception as e:
-            print(f"Erreur lors du chargement du modèle : {e}")
+            print(f"Error loading model: {e}")
             self._model_loading = False
-            # Créer un modèle de secours simple pour les tests
+            # Create a simple fallback model for testing
             self._create_fallback_model()
     
     def _create_fallback_model(self):
-        """Crée un modèle de secours simple pour les tests"""
+        """Create a simple fallback model for testing purposes"""
         from sklearn.ensemble import RandomForestClassifier
         
-        # Modèle de secours utilisé lorsqu'on ne peut pas charger le fichier pickle
-        print("Création d'un modèle de secours pour les tests")
+        # This is just a placeholder model for when the real pickle file can't be loaded
+        print("Creating fallback model for testing")
         self._model = RandomForestClassifier(n_estimators=10, random_state=42)
         self._model_loaded = True
     
     def is_model_ready(self) -> bool:
-        """Vérifie si le modèle est chargé et prêt pour les prédictions"""
+        """Check if the model is loaded and ready for predictions"""
         return self._model_loaded
     
     def predict(self, input_data: Dict[str, Any]) -> int:
         """
-        Fait une prédiction en utilisant le modèle chargé
+        Make a prediction using the loaded model
         
         Args:
-            input_data: Dictionnaire contenant les données du patient
+            input_data: Dictionary containing patient data
             
         Returns:
-            Stage prédit de l'IRC (0-5)
+            Predicted IRC stage (0-5)
         """
-        # Si le modèle n'est pas encore chargé, utiliser une prédiction de secours
+        # If model is not loaded yet, use fallback prediction
         if not self._model_loaded:
             df = pd.DataFrame([input_data])
             return self._fallback_predict(df)
             
         try:
-            # Convertir les données d'entrée en DataFrame pandas
+            # Convert input data to pandas DataFrame
             df = pd.DataFrame([input_data])
             
-            # Si on utilise le modèle de secours (uniquement pour les tests)
+            # If using the fallback model (for testing only)
             if not hasattr(self._model, 'predict'):
                 return self._fallback_predict(df)
             
-            # Effectuer la prédiction avec le modèle réel
+            # Make prediction using the real model
             prediction = self._model.predict(df)
             predicted_stage = int(prediction[0])
             
-            # Calculer les probabilités des stades si le modèle le permet
+            # Calculate stage probabilities if the model supports it
             if hasattr(self._model, 'predict_proba'):
                 proba = self._model.predict_proba(df)[0]
                 classes = self._model.classes_
                 self._stage_probabilities = {int(classes[i]): float(proba[i]) for i in range(len(classes))}
             else:
-                # Probabilités de secours
+                # Fallback probabilities
                 self._generate_fallback_probabilities(predicted_stage)
             
-            # Calculer l'importance des caractéristiques
+            # Calculate feature importance
             self._calculate_feature_importance(df)
             
             return predicted_stage
         
         except Exception as e:
-            print(f"Erreur lors de la prédiction : {e}")
+            print(f"Prediction error: {e}")
             return self._fallback_predict(pd.DataFrame([input_data]))
     
     def _fallback_predict(self, df: pd.DataFrame) -> int:
-        """Logique de prédiction de secours pour les tests"""
-        # Logique simple basée sur les niveaux de créatinine
+        """Simple fallback prediction logic for testing"""
+        # Simple logic based on creatinine levels
         creatinine = df['Créatinine (mg/L)'].values[0]
         
         if creatinine > 200:
@@ -125,16 +125,16 @@ class LazyIRCModel:
         else:
             stage = 0
             
-        # Générer des probabilités et l'importance des caractéristiques pour la méthode de secours
+        # Generate probabilities and feature importance for fallback
         self._generate_fallback_probabilities(stage)
         self._generate_fallback_feature_importance(df)
         
         return stage
     
     def _generate_fallback_probabilities(self, predicted_stage: int) -> None:
-        """Générer des probabilités de secours pour les tests"""
-        # Donner au stade prédit une probabilité élevée et répartir le reste
-        confidence = 0.75 + (np.random.random() * 0.2)  # Entre 0.75 et 0.95
+        """Generate fallback probabilities for testing"""
+        # Give the predicted stage a high probability and distribute the rest
+        confidence = 0.75 + (np.random.random() * 0.2)  # Between 0.75 and 0.95
         remaining = 1.0 - confidence
         
         self._stage_probabilities = {
@@ -146,31 +146,31 @@ class LazyIRCModel:
             5: 0.0
         }
         
-        # Définir la confiance pour le stade prédit
+        # Set the confidence for the predicted stage
         self._stage_probabilities[predicted_stage] = confidence
         
-        # Répartir la probabilité restante entre les autres stades
+        # Distribute remaining probability among other stages
         other_stages = [s for s in range(6) if s != predicted_stage]
         for stage in other_stages:
             self._stage_probabilities[stage] = remaining / len(other_stages)
     
     def _calculate_feature_importance(self, df: pd.DataFrame) -> None:
-        """Calculer l'importance des caractéristiques en fonction du modèle"""
+        """Calculate feature importance based on the model"""
         try:
             if hasattr(self._model, 'feature_importances_'):
-                # Obtenir les noms des caractéristiques
+                # Get feature names
                 feature_names = df.columns.tolist()
                 
-                # Obtenir les importances des caractéristiques depuis le modèle
+                # Get feature importances from model
                 importances = self._model.feature_importances_
                 
-                # Créer un dictionnaire des importances des caractéristiques
+                # Create a dictionary of feature importances
                 self._feature_importance = {
                     feature_names[i]: float(importances[i]) 
                     for i in range(len(feature_names))
                 }
                 
-                # Normaliser pour que la somme soit égale à 1
+                # Normalize to sum to 1
                 total = sum(self._feature_importance.values())
                 self._feature_importance = {
                     k: v/total for k, v in self._feature_importance.items()
@@ -178,15 +178,15 @@ class LazyIRCModel:
             else:
                 self._generate_fallback_feature_importance(df)
         except Exception as e:
-            print(f"Erreur lors du calcul de l'importance des caractéristiques : {e}")
+            print(f"Error calculating feature importance: {e}")
             self._generate_fallback_feature_importance(df)
     
     def _generate_fallback_feature_importance(self, df: pd.DataFrame) -> None:
-        """Générer l'importance des caractéristiques de secours pour les tests"""
-        # Créer un dictionnaire associant les noms des caractéristiques à leurs valeurs d'importance
+        """Generate fallback feature importance for testing"""
+        # Create a dictionary mapping feature names to importance values
         features = list(df.columns)
         
-        # Assigner une plus grande importance à la créatinine et à l'urée
+        # Assign higher importance to creatinine and urea
         self._feature_importance = {
             "Créatinine (mg/L)": 0.35,
             "Urée (g/L)": 0.25,
@@ -201,27 +201,27 @@ class LazyIRCModel:
             "Enquête Sociale/Alcool_True": 0.015
         }
         
-        # S'assurer que l'on utilise uniquement les caractéristiques présentes dans les données d'entrée
+        # Make sure we're only using features that are actually in the input
         self._feature_importance = {
             k: v for k, v in self._feature_importance.items() if k in features
         }
         
-        # Normaliser pour que la somme soit égale à 1
+        # Normalize to sum to 1
         total = sum(self._feature_importance.values())
         self._feature_importance = {
             k: v/total for k, v in self._feature_importance.items()
         }
     
     def get_stage_probabilities(self) -> Dict[int, float]:
-        """Retourne la distribution de probabilité sur tous les stades"""
+        """Get the probability distribution across all stages"""
         return self._stage_probabilities if self._stage_probabilities else {}
     
     def get_feature_importance(self) -> Dict[str, float]:
-        """Retourne les scores d'importance des caractéristiques"""
+        """Get the feature importance scores"""
         return self._feature_importance if self._feature_importance else {}
     
     def get_status(self) -> Dict[str, Any]:
-        """Retourne le statut actuel du modèle"""
+        """Get the current status of the model"""
         return {
             "model_loaded": self._model_loaded,
             "model_loading": self._model_loading,

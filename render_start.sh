@@ -4,11 +4,14 @@ set -e
 # Configuration pour Render
 export PORT=${PORT:-8000}
 export HOST=${HOST:-0.0.0.0}
-export TIMEOUT=${TIMEOUT:-120}  # Timeout en secondes
+export WORKERS=${WORKERS:-1}  # Réduit à un seul worker pour éviter les timeouts
+export TIMEOUT=${TIMEOUT:-120}  # Augmente le timeout à 120 secondes
+export MAX_REQUESTS=${MAX_REQUESTS:-1}  # Limite le nombre de requêtes par worker
 
 echo "=== Démarrage de NéphroPredict sur Render ==="
 echo "Hôte: $HOST"
 echo "Port: $PORT"
+echo "Workers: $WORKERS"
 echo "Timeout: $TIMEOUT"
 
 # Vérifier le répertoire
@@ -19,42 +22,15 @@ else
     FASTAPI_DIR="$SCRIPT_DIR"
 fi
 
-# Créer et activer un environnement virtuel Python si nécessaire
-VENV_DIR="$SCRIPT_DIR/env"
-if [ ! -d "$VENV_DIR" ]; then
-    echo "=== Création de l'environnement virtuel Python ==="
-    python3 -m venv "$VENV_DIR"
-fi
+cd "$FASTAPI_DIR"
 
-echo "=== Activation de l'environnement virtuel ==="
-source "$VENV_DIR/bin/activate"
-
-# Installation des dépendances Python
-echo "=== Installation des dépendances Python ==="
-cd "$FASTAPI_DIR" || exit 1
-echo "Installation des requirements..."
-pip install -r production_requirements.txt
-
-# Démarrage du frontend
-echo "=== Démarrage du Frontend ==="
-cd "$SCRIPT_DIR/client" || exit 1
-echo "Installation des dépendances frontend..."
-npm install
-echo "Construction du frontend..."
-npm run build
-
-# Vérifier que le build a réussi
-if [ $? -eq 0 ]; then
-  echo "Frontend construit avec succès"
-else
-  echo "Erreur lors de la construction du frontend"
-  exit 1
-fi
-
-# Démarrer le backend avec Uvicorn
-echo "Démarrage du backend avec Uvicorn..."
-cd "$FASTAPI_DIR" || exit 1
-exec uvicorn render_main:app \
-    --host $HOST \
-    --port $PORT \
-    --timeout-keep-alive $TIMEOUT
+# Démarrer avec un seul worker et augmenter le timeout
+# Utiliser render_main.py au lieu de main.py pour bénéficier du chargement paresseux du modèle
+exec gunicorn render_main:app \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --workers $WORKERS \
+    --bind $HOST:$PORT \
+    --timeout $TIMEOUT \
+    --max-requests $MAX_REQUESTS \
+    --access-logfile - \
+    --error-logfile -
