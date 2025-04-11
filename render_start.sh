@@ -4,7 +4,7 @@ set -e
 # Configuration pour Render
 export PORT=${PORT:-8000}
 export HOST=${HOST:-0.0.0.0}
-export TIMEOUT=${TIMEOUT:-120}  # Timeout en secondes
+export TIMEOUT=${TIMEOUT:-120}
 
 echo "=== Démarrage de NéphroPredict sur Render ==="
 echo "Hôte: $HOST"
@@ -19,27 +19,26 @@ else
     FASTAPI_DIR="$SCRIPT_DIR"
 fi
 
-# Installation des dépendances Python
+# Mise à jour de pip et installation des dépendances Python
 echo "=== Installation des dépendances Python ==="
 cd "$FASTAPI_DIR" || exit 1
-echo "Installation des requirements..."
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+pip install -r requirements.txt --no-cache-dir
 
 # Démarrage du frontend
 echo "=== Démarrage du Frontend ==="
 cd "$SCRIPT_DIR/client" || exit 1
-echo "Installation des dépendances frontend..."
 npm install
-echo "Construction du frontend..."
+npm audit fix --force
+npx update-browserslist-db@latest
 npm run build
 
-# Vérifier que le build a réussi
-if [ $? -eq 0 ]; then
-  echo "Frontend construit avec succès"
-else
+# Vérification du build frontend
+if [ $? -ne 0 ]; then
   echo "Erreur lors de la construction du frontend"
   exit 1
 fi
+echo "Frontend construit avec succès"
 
 # Démarrer le backend avec Uvicorn
 echo "Démarrage du backend avec Uvicorn..."
