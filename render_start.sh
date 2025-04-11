@@ -19,6 +19,16 @@ else
     FASTAPI_DIR="$SCRIPT_DIR"
 fi
 
+# Créer et activer un environnement virtuel Python si nécessaire
+VENV_DIR="$SCRIPT_DIR/env"
+if [ ! -d "$VENV_DIR" ]; then
+    echo "=== Création de l'environnement virtuel Python ==="
+    python3 -m venv "$VENV_DIR"
+fi
+
+echo "=== Activation de l'environnement virtuel ==="
+source "$VENV_DIR/bin/activate"
+
 # Installation des dépendances Python
 echo "=== Installation des dépendances Python ==="
 cd "$FASTAPI_DIR" || exit 1
