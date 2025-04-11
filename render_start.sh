@@ -24,6 +24,13 @@ fi
 
 cd "$FASTAPI_DIR"
 
+# Vérification de l'installation de gunicorn
+if ! command -v gunicorn &> /dev/null
+then
+    echo "gunicorn n'est pas installé, installation en cours..."
+    pip install gunicorn
+fi
+
 # Démarrer avec un seul worker et augmenter le timeout
 # Utiliser render_main.py au lieu de main.py pour bénéficier du chargement paresseux du modèle
 exec gunicorn render_main:app \
