@@ -23,7 +23,7 @@ fi
 echo "=== Installation des dépendances Python ==="
 cd "$FASTAPI_DIR" || exit 1
 echo "Installation des requirements..."
-pip install -r requirements.txt
+pip install -r production-requirements.txt
 
 # Démarrage du frontend
 echo "=== Démarrage du Frontend ==="
