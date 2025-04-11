@@ -91,7 +91,7 @@ export default function ModelPreview() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-neutral-100 rounded-lg p-3">
             <div className="text-xs text-neutral-500 mb-1">Précision</div>
-            <div className="text-lg font-semibold">97.2%</div>
+            <div className="text-lg font-semibold">85%</div>
           </div>
           <div className="bg-neutral-100 rounded-lg p-3">
             <div className="text-xs text-neutral-500 mb-1">Prédictions</div>
@@ -101,7 +101,7 @@ export default function ModelPreview() {
 
         <div className="bg-gradient-to-r from-primary-500 to-secondary-600 text-white rounded-lg p-4">
           <div className="text-sm font-medium mb-2">Version actuelle</div>
-          <div className="text-xl font-semibold">model_lucien_v1.pkl</div>
+          <div className="text-xl font-semibold">model_groupe2_ai.pkl</div>
         </div>
       </div>
     </div>

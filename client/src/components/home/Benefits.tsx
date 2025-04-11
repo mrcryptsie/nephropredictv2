@@ -8,7 +8,7 @@ const benefits = [
   },
   {
     title: "Haute précision",
-    description: "Notre modèle d'IA avancé offre une précision supérieure à 95% dans la prédiction des stades de l'IRC.",
+    description: "Notre modèle d'IA avancé offre une précision supérieure à 85% dans la prédiction des stades de l'IRC.",
     icon: BarChart2
   },
   {
