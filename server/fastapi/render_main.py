@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Dict, Any, Optional
 import uvicorn
 import numpy as np
@@ -40,9 +40,9 @@ class PredictionInput(BaseModel):
     tabac_true: int = Field(alias="Enquête Sociale/Tabac_True", description="Tobacco use: 1 if yes, 0 if no")
     alcool_true: int = Field(alias="Enquête Sociale/Alcool_True", description="Alcohol consumption: 1 if yes, 0 if no")
 
-    class Config:
-        populate_by_name = True
-        schema_extra = {
+    model_config = ConfigDict(
+        populate_by_name=True,
+        json_schema_extra={
             "example": {
                 "Créatinine (mg/L)": 42.0,
                 "Urée (g/L)": 1.14,
@@ -57,6 +57,7 @@ class PredictionInput(BaseModel):
                 "Enquête Sociale/Alcool_True": 1
             }
         }
+    )
 
 # Stage probability model
 class StageProbability(BaseModel):
@@ -81,6 +82,10 @@ class ModelStatus(BaseModel):
     model_loaded: bool
     model_loading: bool
     model_type: Optional[str] = None
+    
+    model_config = ConfigDict(
+        protected_namespaces=()
+    )
 
 @app.get("/")
 async def root():
