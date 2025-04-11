@@ -15,7 +15,7 @@ const contactFormSchema = z.object({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Prediction API endpoint
-  app.post("/api/predict", async (req, res) => {
+  app.post("/predict", async (req, res) => {
     try {
       // Validate input data
       const parsedData = predictionInputSchema.safeParse(req.body);
@@ -44,7 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Contact form endpoint
-  app.post("/api/contact", async (req, res) => {
+  app.post("/contact", async (req, res) => {
     try {
       // Validate input data
       const parsedData = contactFormSchema.safeParse(req.body);
